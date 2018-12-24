@@ -8,23 +8,49 @@ namespace ExtendedHeader
     {
         private double _titleLabelLeft;
         private double _titleLabelXFactor;
-        private double _opacityFactor = 1.0 / 140.0;
+
+        private double _opacityFactor = 0.0; //= 1.0 / 140.0;
+
+        private double yStartingPoint = 0.0;
+        private double yEndPoint = 0.0;
 
         public MainPage()
         {
             NavigationPage.SetHasNavigationBar(this, false);
             InitializeComponent();
 
+            MessagingCenter.Subscribe<LoadedMessage, bool>(this, string.Empty, (message, result) =>
+            {
+                if(result)
+                {
+                    //System.Diagnostics.Debug.WriteLine($"Y starting position screen 1: {DependencyService.Get<IViewHelper>().GetScreenCoordinates(AnchorBox)}");
+                    //System.Diagnostics.Debug.WriteLine($"Y starting position screen 2: {DependencyService.Get<IViewHelper>().GetScreenCoordinates(AnchorBoxHeader)}");
+                    //System.Diagnostics.Debug.WriteLine($"Y starting position screen 3: {DependencyService.Get<IViewHelper>().GetScreenCoordinates(HeaderGrid)}");
+                    //System.Diagnostics.Debug.WriteLine($"Y starting position screen 3: {DependencyService.Get<IViewHelper>().GetScreenCoordinates(BaseHeaderGrid)}");
+                    //System.Diagnostics.Debug.WriteLine($"{DeviceDisplay.MainDisplayInfo.Density}");
+
+                    yStartingPoint = DependencyService.Get<IViewHelper>().GetScreenCoordinates(AnchorBox).Y;
+                    yEndPoint = DependencyService.Get<IViewHelper>().GetScreenCoordinates(AnchorBoxHeader).Y;
+
+                    if(Device.RuntimePlatform == Device.Android)
+                    {
+                        yStartingPoint = (yStartingPoint / DeviceDisplay.MainDisplayInfo.Density);
+                        yEndPoint = (yEndPoint / DeviceDisplay.MainDisplayInfo.Density);
+                    }
+
+                    if(Device.RuntimePlatform == Device.iOS)
+                    {
+                        yStartingPoint = 200;
+                        yEndPoint = 60;
+                    }
+
+                    System.Diagnostics.Debug.WriteLine($"{yStartingPoint} - {yEndPoint} - {yStartingPoint - yEndPoint}");
+
+                    _opacityFactor = 1 / (yStartingPoint - yEndPoint);
+                }
+            });
+
             ContentScrollView.PropertyChanged += OnContentScrollViewPropertyChanged;
-            TitleLabel.SizeChanged += OnTitleLabelSizeChanged;
-        }
-
-        private void OnTitleLabelSizeChanged(object sender, EventArgs e)
-        {
-            TitleLabel.SizeChanged -= OnTitleLabelSizeChanged;
-
-            _titleLabelLeft = TitleLabel.X;
-            _titleLabelXFactor = ((Width / 2) - ((TitleLabel.Width + _titleLabelLeft) / 2)) / 140;
         }
 
         private void OnContentScrollViewPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -35,23 +61,21 @@ namespace ExtendedHeader
 
         private void AnimateElements()
         {
-            var boxCoordinates = DependencyService.Get<IViewHelper>().GetScreenCoordinates(AnchorBox);
-            var yCoordinate = Device.RuntimePlatform == Device.Android ? boxCoordinates.Y / DeviceDisplay.MainDisplayInfo.Density : boxCoordinates.Y;
+            var yCoordinate = DependencyService.Get<IViewHelper>().GetScreenCoordinates(AnchorBox).Y;
 
-            System.Diagnostics.Debug.WriteLine($"Y position screen: {yCoordinate}");
+            if (Device.RuntimePlatform == Device.Android)
+                yCoordinate = (yCoordinate / DeviceDisplay.MainDisplayInfo.Density);
 
-            if (yCoordinate > 200)
-                yCoordinate = 200;
+            System.Diagnostics.Debug.WriteLine($"Y starting position screen: {yCoordinate}");
 
-            if (yCoordinate < 60)
-                yCoordinate = 60;
+            if (yCoordinate > yStartingPoint)
+                yCoordinate = yStartingPoint;
 
-            double scrolled = (200 - yCoordinate);
-
-            System.Diagnostics.Debug.WriteLine($"Scrolled: {scrolled}");
+            if (yCoordinate < yEndPoint)
+                yCoordinate = yEndPoint;
 
             HeaderRowDefinition.Height = yCoordinate;
-            HeaderImage.Opacity = 1 - (scrolled * _opacityFactor);
+            HeaderImage.Opacity = 1 - ((yStartingPoint - yCoordinate) * _opacityFactor);
         }
     }
 }

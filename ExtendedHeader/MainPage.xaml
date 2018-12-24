@@ -11,6 +11,10 @@
                     <RowDefinition Height="60" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
+                <BoxView x:Name="AnchorBoxHeader" BackgroundColor="Red" WidthRequest="50" HeightRequest="10" VerticalOptions="Start" HorizontalOptions="Start"
+                         IsVisible="true" Opacity="0"
+                         Grid.Row="1" />
+                
                 <Image x:Name="HeaderImage" Source="bear.jpg" Aspect="AspectFill"
                        Grid.Row="0" Grid.RowSpan="2"/>
                 
@@ -41,6 +45,7 @@
                             VerticalOptions="Start"
                             Grid.Column="2" />
                 </Grid>
+               
             </Grid>
             <Grid x:Name="BaseContentGrid"
                   RowSpacing="0" ColumnSpacing="0"
@@ -50,7 +55,6 @@
                 
                 <ScrollView x:Name="ContentScrollView">
                     <Grid RowSpacing="0" ColumnSpacing="0">
-
                         <Label x:Name="ScrollContent" LineBreakMode="WordWrap" IsVisible="true"
                                Margin="12,20,12,5">
                             <Label.FormattedText>
@@ -64,9 +68,8 @@
                                 </FormattedString>
                             </Label.FormattedText>
                         </Label>
-                        
                         <BoxView x:Name="AnchorBox" BackgroundColor="Yellow" WidthRequest="50" HeightRequest="10" VerticalOptions="Start" HorizontalOptions="Start"
-                                 IsVisible="false" />
+                                 IsVisible="true" Opacity="0" />
                     </Grid>
                 </ScrollView>
                 
